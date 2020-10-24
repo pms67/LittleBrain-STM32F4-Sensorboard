@@ -1,0 +1,5 @@
+(sym_lib_table
+  (lib (name RBoard-rescue)(type Legacy)(uri ${KIPRJMOD}/RBoard-rescue.lib)(options "")(descr ""))
+  (lib (name BMI088)(type Legacy)(uri ${KIPRJMOD}/BMI088.lib)(options "")(descr ""))
+  (lib (name MP2359)(type Legacy)(uri ${KIPRJMOD}/MP2359.lib)(options "")(descr ""))
+)

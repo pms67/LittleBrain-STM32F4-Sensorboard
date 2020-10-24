@@ -1,0 +1,6 @@
+(fp_lib_table
+  (lib (name BMI088)(type KiCad)(uri ${KIPRJMOD}/BMI088.pretty)(options "")(descr ""))
+  (lib (name WinbondFlash)(type KiCad)(uri ${KIPRJMOD}/WinbondFlash.pretty)(options "")(descr ""))
+  (lib (name RGB_LED)(type KiCad)(uri ${KIPRJMOD}/RGB_LED.pretty)(options "")(descr ""))
+  (lib (name Silk)(type KiCad)(uri ${KIPRJMOD}/Silk.pretty)(options "")(descr ""))
+)
