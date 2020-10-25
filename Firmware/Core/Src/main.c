@@ -1,8 +1,9 @@
 #include "main.h"
 #include "usb_device.h"
-#include "usbd_cdc_if.h" /* Needed for CDC_Transmit_FS() */
+#include "usbd_cdc_if.h"
 
 #include "BMI088.h"
+
 
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi3;
@@ -19,25 +20,6 @@ static void MX_SPI3_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 
-void LED_SetIntensity(uint8_t red, uint8_t green, uint8_t blue) {
-
-	htim3.Instance->CCR1 = red;
-	htim3.Instance->CCR2 = green;
-	htim4.Instance->CCR1 = blue;
-
-}
-
-void LED_Initialise() {
-
-	/* Start RGB LED PWM timers */
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-
-	LED_SetIntensity(0, 0, 0);
-
-}
-
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
 	if (GPIO_Pin == INT_ACC_Pin) {
@@ -49,6 +31,23 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		BMI088_ReadGyroscope(&imu);
 
 	}
+
+}
+
+void LED_RGB_Init() {
+
+	/* Start RGB LED PWM timers */
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+
+}
+
+void LED_RGB_SetIntensity(uint8_t red, uint8_t green, uint8_t blue) {
+
+	htim3.Instance->CCR1 = 100 - red;
+	htim3.Instance->CCR2 = 100 - green;
+	htim4.Instance->CCR1 = 100 - blue;
 
 }
 
@@ -66,32 +65,26 @@ int main(void)
   MX_TIM4_Init();
   MX_USB_DEVICE_Init();
 
-  LED_Initialise();
-
-
-  LED_SetIntensity(100, 0, 0);
-  HAL_Delay(1000);
-
-  LED_SetIntensity(0, 100, 0);
-  HAL_Delay(1000);
-
-  LED_SetIntensity(0, 0, 100);
-  HAL_Delay(1000);
+  LED_RGB_Init();
+  LED_RGB_SetIntensity(0, 0, 0);
 
   BMI088_Init(&imu, &hspi1, GPIOA, SPI1_NCS_ACC_Pin, GPIOC, SPI1_NCS_GYR_Pin);
 
+  char logBuf[128];
 
   while (1)
   {
 
-	 // BMI088_ReadAccelerometer(&imu);
+	  sprintf(logBuf, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", imu.acc[0], imu.acc[1], imu.acc[2],
+			  	  	  	  	  	  	  	  	  	  	    imu.gyr[0], imu.gyr[1], imu.gyr[2]);
 
-	  //printf("%f\t%f\t%f\r\n", imu.acc[0], imu.acc[1], imu.acc[2]);
+	  CDC_Transmit_FS((uint8_t *) logBuf, strlen(logBuf));
 
+	  LED_RGB_SetIntensity(100, 0, 0);
+	  HAL_Delay(250);
 
-	  CDC_Transmit_FS((uint8_t *) "Hello\r\n", 7);
-
-	  HAL_Delay(50);
+	  LED_RGB_SetIntensity(0, 0, 100);
+	  HAL_Delay(250);
 
   }
 

@@ -28,24 +28,24 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-LT.elf \
+LittleBrainFW.elf \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-LT.list \
+LittleBrainFW.list \
 
 OBJCOPY_BIN += \
-LT.bin \
+LittleBrainFW.bin \
 
 
 # All Target
-all: LT.elf secondary-outputs
+all: LittleBrainFW.elf secondary-outputs
 
 # Tool invocations
-LT.elf: $(OBJS) $(USER_OBJS) C:\Users\phili\OneDrive\Electrical\JLCPCB\RBoard\Firmware\STM32F405RGTX_FLASH.ld
-	arm-none-eabi-gcc -o "LT.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\phili\OneDrive\Electrical\JLCPCB\RBoard\Firmware\STM32F405RGTX_FLASH.ld" -Wl,-Map="LT.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+LittleBrainFW.elf: $(OBJS) $(USER_OBJS) C:\Users\phili\OneDrive\Electrical\JLCPCB\RBoard\Firmware\STM32F405RGTX_FLASH.ld
+	arm-none-eabi-gcc -o "LittleBrainFW.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\phili\OneDrive\Electrical\JLCPCB\RBoard\Firmware\STM32F405RGTX_FLASH.ld" -Wl,-Map="LittleBrainFW.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -54,13 +54,13 @@ default.size.stdout: $(EXECUTABLES)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-LT.list: $(EXECUTABLES)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "LT.list"
+LittleBrainFW.list: $(EXECUTABLES)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "LittleBrainFW.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
-LT.bin: $(EXECUTABLES)
-	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "LT.bin"
+LittleBrainFW.bin: $(EXECUTABLES)
+	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "LittleBrainFW.bin"
 	@echo 'Finished building: $@'
 	@echo ' '
 
