@@ -27,6 +27,10 @@ typedef struct {
 	GPIO_TypeDef 	  *csPinBank;
 	uint16_t 		   csPin;
 
+	/* DMA */
+	uint8_t dmaRxBuf[7];
+	uint8_t reading;
+
 	/* Calibration values */
 	int16_t c0, c1;
 	int32_t c00, c10;
@@ -51,5 +55,13 @@ uint8_t SPL06_Init(SPL06 *bar, SPI_HandleTypeDef *spiHandle, GPIO_TypeDef *csPin
  *
  */
 void SPL06_Read(SPL06 *bar);
+
+/*
+ *
+ * TEMPERATURE AND PRESSURE READ (DMA)
+ *
+ */
+uint8_t SPL06_ReadDMA(SPL06 *bar);
+void 	SPL06_ReadDMA_Complete(SPL06 *bar);
 
 #endif

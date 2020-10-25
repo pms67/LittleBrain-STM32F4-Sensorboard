@@ -38,7 +38,9 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 /* USER CODE END PD */
-
+#define SAMPLE_TIME_MS_USB 1000
+#define SAMPLE_TIME_MS_BAR  125
+#define SAMPLE_TIME_MS_LED  250
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
@@ -49,6 +51,8 @@ SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi3;
 DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi1_tx;
+DMA_HandleTypeDef hdma_spi3_rx;
+DMA_HandleTypeDef hdma_spi3_tx;
 
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
@@ -74,15 +78,27 @@ static void MX_TIM4_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 
-	if (imu.readingAcc) {
+	if (hspi->Instance == SPI1) {
 
-		BMI088_ReadAccelerometerDMA_Complete(&imu);
+		if (imu.readingAcc) {
 
-	}
+			BMI088_ReadAccelerometerDMA_Complete(&imu);
 
-	if (imu.readingGyr) {
+		}
 
-		BMI088_ReadGyroscopeDMA_Complete(&imu);
+		if (imu.readingGyr) {
+
+			BMI088_ReadGyroscopeDMA_Complete(&imu);
+
+		}
+
+	} else if (hspi->Instance == SPI3) {
+
+		if (bar.reading) {
+
+			SPL06_ReadDMA_Complete(&bar);
+
+		}
 
 	}
 
@@ -170,6 +186,14 @@ int main(void)
   /* Initialise barometric pressure sensor */
   SPL06_Init(&bar, &hspi3, GPIOA, SPI3_NCS_Pin);
 
+  /* Timers */
+  uint32_t timerBAR = 0;
+  uint32_t timerUSB = 0;
+  uint32_t timerLED	= 0;
+
+  /* LED intensity */
+  uint8_t ledIntensity = 0;
+
   char logBuf[128];
   /* USER CODE END 2 */
 
@@ -180,19 +204,42 @@ int main(void)
     /* USER CODE END WHILE */
 
 	  /* Log data via USB */
-	  sprintf(logBuf, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", imu.acc_mps2[0], imu.acc_mps2[1], imu.acc_mps2[2],
-			  	  	  	  	  	  	  	  	  	  	    		imu.gyr_rps[0], imu.gyr_rps[1], imu.gyr_rps[2]);
+	  if ((HAL_GetTick() - timerUSB) >= SAMPLE_TIME_MS_USB) {
 
-	  CDC_Transmit_FS((uint8_t *) logBuf, strlen(logBuf));
 
-	  LED_RGB_SetIntensity(100, 0, 0);
-	  HAL_Delay(250);
+		  sprintf(logBuf, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", imu.acc_mps2[0], imu.acc_mps2[1], imu.acc_mps2[2],
+																	imu.gyr_rps[0], imu.gyr_rps[1], imu.gyr_rps[2]);
+
+		  CDC_Transmit_FS((uint8_t *) logBuf, strlen(logBuf));
+
+		  timerUSB = HAL_GetTick();
+
+	  }
 
 	  /* Read pressure sensor */
-	  SPL06_Read(&bar);
+	  if ((HAL_GetTick() - timerBAR) >= SAMPLE_TIME_MS_BAR) {
 
-	  LED_RGB_SetIntensity(0, 0, 100);
-	  HAL_Delay(250);
+		  SPL06_ReadDMA(&bar);
+
+		  timerBAR = HAL_GetTick();
+
+	  }
+
+	  /* Toggle LED */
+	  if ((HAL_GetTick() - timerLED) >= SAMPLE_TIME_MS_LED) {
+
+		  LED_RGB_SetIntensity(ledIntensity, 0, 0);
+
+		  if (ledIntensity == 0) {
+			  ledIntensity = 100;
+		  } else {
+			  ledIntensity = 0;
+		  }
+
+		  timerLED = HAL_GetTick();
+
+	  }
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -446,8 +493,15 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA2_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA1_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);

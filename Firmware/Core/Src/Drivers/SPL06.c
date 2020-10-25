@@ -108,7 +108,7 @@ uint8_t SPL06_Init(SPL06 *bar, SPI_HandleTypeDef *spiHandle, GPIO_TypeDef *csPin
 
 /*
  *
- * TEMPERATURE AND PRESSURE READ
+ * TEMPERATURE AND PRESSURE READ (POLLING)
  *
  */
 void SPL06_Read(SPL06 *bar) {
@@ -134,6 +134,52 @@ void SPL06_Read(SPL06 *bar) {
 	bar->temperature_C = 0.5f * bar->c0 + bar->c1 * tempRaw;
 
 	float presRaw   = (float) pres / 7864320.0f;
+	bar->pressure_Pa = bar->c00 + presRaw * (bar->c10 + presRaw * (bar->c20 + bar->c30 * presRaw))
+				    + tempRaw * (bar->c01 + presRaw * (bar->c11 + bar->c21 * presRaw));
+
+}
+
+/*
+ *
+ * TEMPERATURE AND PRESSURE READ (DMA)
+ *
+ */
+uint8_t SPL06_ReadDMA(SPL06 *bar) {
+
+	uint8_t txBuf[7];
+	txBuf[0] = 0x00 | 0x80;
+
+	HAL_GPIO_WritePin(bar->csPinBank, bar->csPin, GPIO_PIN_RESET);
+	if (HAL_SPI_TransmitReceive_DMA(bar->spiHandle, txBuf, (uint8_t *) bar->dmaRxBuf, 7) == HAL_OK) {
+
+		bar->reading = 1;
+		return 1;
+
+	} else {
+
+		return 0;
+
+	}
+
+}
+
+void SPL06_ReadDMA_Complete(SPL06 *bar) {
+
+	HAL_GPIO_WritePin(bar->csPinBank, bar->csPin, GPIO_PIN_SET);
+	bar->reading = 0;
+
+	/* Convert raw to uncalibrated pressure and temperature */
+	int32_t pres = ((uint32_t) bar->dmaRxBuf[1] << 16) | ((uint32_t) bar->dmaRxBuf[2] << 8) | ((uint32_t) bar->dmaRxBuf[3]);
+			pres = (pres & 1 << 23) ? (0xFF000000 | pres) : pres;
+
+	int32_t temp = ((uint32_t) bar->dmaRxBuf[4] << 16) | ((uint32_t) bar->dmaRxBuf[5] << 8) | ((uint32_t) bar->dmaRxBuf[6]);
+			temp = (temp & 1 << 23) ? (0xFF000000 | temp) : temp;
+
+	/* Apply calibration */
+	float tempRaw 	   = (float) temp / 7864320.0f;
+	bar->temperature_C = 0.5f * bar->c0 + bar->c1 * tempRaw;
+
+	float presRaw    = (float) pres / 7864320.0f;
 	bar->pressure_Pa = bar->c00 + presRaw * (bar->c10 + presRaw * (bar->c20 + bar->c30 * presRaw))
 				    + tempRaw * (bar->c01 + presRaw * (bar->c11 + bar->c21 * presRaw));
 
