@@ -1,34 +1,103 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+
+/* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
-
 #include "BMI088.h"
+/* USER CODE END Includes */
 
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
 
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi3;
+DMA_HandleTypeDef hdma_spi1_rx;
+DMA_HandleTypeDef hdma_spi1_tx;
 
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
+/* USER CODE BEGIN PV */
 BMI088 imu;
+/* USER CODE END PV */
 
+/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
+
+	if (imu.readingAcc) {
+
+		BMI088_ReadAccelerometerDMA_Complete(&imu);
+
+	}
+
+	if (imu.readingGyr) {
+
+		BMI088_ReadGyroscopeDMA_Complete(&imu);
+
+	}
+
+}
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
 	if (GPIO_Pin == INT_ACC_Pin) {
 
-		BMI088_ReadAccelerometer(&imu);
+		BMI088_ReadAccelerometerDMA(&imu);
+
+		//BMI088_ReadAccelerometer(&imu);
 
 	} else if (GPIO_Pin == INT_GYR_Pin) {
 
-		BMI088_ReadGyroscope(&imu);
+		BMI088_ReadGyroscopeDMA(&imu);
+
+		//BMI088_ReadGyroscope(&imu);
 
 	}
 
@@ -50,31 +119,56 @@ void LED_RGB_SetIntensity(uint8_t red, uint8_t green, uint8_t blue) {
 	htim4.Instance->CCR1 = 100 - blue;
 
 }
+/* USER CODE END 0 */
 
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
+  /* USER CODE BEGIN 1 */
 
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
   SystemClock_Config();
 
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_SPI1_Init();
   MX_SPI3_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_USB_DEVICE_Init();
-
+  /* USER CODE BEGIN 2 */
   LED_RGB_Init();
   LED_RGB_SetIntensity(0, 0, 0);
 
   BMI088_Init(&imu, &hspi1, GPIOA, SPI1_NCS_ACC_Pin, GPIOC, SPI1_NCS_GYR_Pin);
 
   char logBuf[128];
+  /* USER CODE END 2 */
 
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+    /* USER CODE END WHILE */
 	  sprintf(logBuf, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", imu.acc[0], imu.acc[1], imu.acc[2],
 			  	  	  	  	  	  	  	  	  	  	    imu.gyr[0], imu.gyr[1], imu.gyr[2]);
 
@@ -85,9 +179,9 @@ int main(void)
 
 	  LED_RGB_SetIntensity(0, 0, 100);
 	  HAL_Delay(250);
-
+    /* USER CODE BEGIN 3 */
   }
-
+  /* USER CODE END 3 */
 }
 
 /**
@@ -327,6 +421,25 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 2 */
   HAL_TIM_MspPostInit(&htim4);
+
+}
+
+/** 
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void) 
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* DMA2_Stream3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
 
 }
 
