@@ -39,13 +39,13 @@ typedef struct {
 	volatile uint8_t accRxBuf[8];
 	volatile uint8_t gyrRxBuf[7];
 
-	/* Conversion constants (raw to m/s^2 and raw to deg/s) */
+	/* Conversion constants (raw to m/s^2 and raw to rad/s) */
 	float accConversion;
 	float gyrConversion;
 
 	/* x-y-z measurements */
-	float acc[3];
-	float gyr[3];
+	float acc_mps2[3];
+	float gyr_rps[3];
 
 } BMI088;
 

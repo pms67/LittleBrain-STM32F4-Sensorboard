@@ -114,8 +114,8 @@ uint8_t BMI088_Init(BMI088 *imu,
 	status += BMI088_WriteGyrRegister(imu, BMI_INT3_INT4_IO_MAP, 0x01); /* Data ready interrupt mapped to INT3 pin */
 	HAL_Delay(10);
 
-	/* Pre-compute gyroscope conversion constant (raw to deg/s) */
-	imu->gyrConversion = 1000.0f / 32768.0f; /* Datasheet page 39 */
+	/* Pre-compute gyroscope conversion constant (raw to rad/s) */
+	imu->gyrConversion = 0.01745329251f * 1000.0f / 32768.0f; /* Datasheet page 39 */
 
 	return status;
 
@@ -215,9 +215,9 @@ uint8_t BMI088_ReadAccelerometer(BMI088 *imu) {
 	int16_t accZ = (int16_t) ((rxBuf[7] << 8) | rxBuf[6]);
 
 	/* Convert to m/s^2 */
-	imu->acc[0] = imu->accConversion * accX;
-	imu->acc[1] = imu->accConversion * accY;
-	imu->acc[2] = imu->accConversion * accZ;
+	imu->acc_mps2[0] = imu->accConversion * accX;
+	imu->acc_mps2[1] = imu->accConversion * accY;
+	imu->acc_mps2[2] = imu->accConversion * accZ;
 
 	return status;
 
@@ -238,10 +238,10 @@ uint8_t BMI088_ReadGyroscope(BMI088 *imu) {
 	int16_t gyrY = (int16_t) ((rxBuf[4] << 8) | rxBuf[3]);
 	int16_t gyrZ = (int16_t) ((rxBuf[6] << 8) | rxBuf[5]);
 
-	/* Convert to deg/s */
-	imu->gyr[0] = imu->gyrConversion * gyrX;
-	imu->gyr[1] = imu->gyrConversion * gyrY;
-	imu->gyr[2] = imu->gyrConversion * gyrZ;
+	/* Convert to rad/s */
+	imu->gyr_rps[0] = imu->gyrConversion * gyrX;
+	imu->gyr_rps[1] = imu->gyrConversion * gyrY;
+	imu->gyr_rps[2] = imu->gyrConversion * gyrZ;
 
 	return status;
 
@@ -281,9 +281,9 @@ void BMI088_ReadAccelerometerDMA_Complete(BMI088 *imu) {
 	int16_t accZ = (int16_t) ((imu->accRxBuf[7] << 8) | imu->accRxBuf[6]);
 
 	/* Convert to m/s^2 */
-	imu->acc[0] = imu->accConversion * accX;
-	imu->acc[1] = imu->accConversion * accY;
-	imu->acc[2] = imu->accConversion * accZ;
+	imu->acc_mps2[0] = imu->accConversion * accX;
+	imu->acc_mps2[1] = imu->accConversion * accY;
+	imu->acc_mps2[2] = imu->accConversion * accZ;
 
 }
 
@@ -316,8 +316,8 @@ void BMI088_ReadGyroscopeDMA_Complete(BMI088 *imu) {
 	int16_t gyrZ = (int16_t) ((imu->gyrRxBuf[6] << 8) | imu->gyrRxBuf[5]);
 
 	/* Convert to deg/s */
-	imu->gyr[0] = imu->gyrConversion * gyrX;
-	imu->gyr[1] = imu->gyrConversion * gyrY;
-	imu->gyr[2] = imu->gyrConversion * gyrZ;
+	imu->gyr_rps[0] = imu->gyrConversion * gyrX;
+	imu->gyr_rps[1] = imu->gyrConversion * gyrY;
+	imu->gyr_rps[2] = imu->gyrConversion * gyrZ;
 
 }

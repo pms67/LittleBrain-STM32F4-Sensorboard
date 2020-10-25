@@ -25,7 +25,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
+
 #include "BMI088.h"
+#include "SPL06.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,6 +55,7 @@ TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
 BMI088 imu;
+SPL06  bar;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -156,10 +159,16 @@ int main(void)
   MX_TIM4_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
+
+  /* Initialise RGB LED */
   LED_RGB_Init();
   LED_RGB_SetIntensity(0, 0, 0);
 
+  /* Initialise inertial measurement unit */
   BMI088_Init(&imu, &hspi1, GPIOA, SPI1_NCS_ACC_Pin, GPIOC, SPI1_NCS_GYR_Pin);
+
+  /* Initialise barometric pressure sensor */
+  SPL06_Init(&bar, &hspi3, GPIOA, SPI3_NCS_Pin);
 
   char logBuf[128];
   /* USER CODE END 2 */
@@ -169,13 +178,18 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  sprintf(logBuf, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", imu.acc[0], imu.acc[1], imu.acc[2],
-			  	  	  	  	  	  	  	  	  	  	    imu.gyr[0], imu.gyr[1], imu.gyr[2]);
+
+	  /* Log data via USB */
+	  sprintf(logBuf, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", imu.acc_mps2[0], imu.acc_mps2[1], imu.acc_mps2[2],
+			  	  	  	  	  	  	  	  	  	  	    		imu.gyr_rps[0], imu.gyr_rps[1], imu.gyr_rps[2]);
 
 	  CDC_Transmit_FS((uint8_t *) logBuf, strlen(logBuf));
 
 	  LED_RGB_SetIntensity(100, 0, 0);
 	  HAL_Delay(250);
+
+	  /* Read pressure sensor */
+	  SPL06_Read(&bar);
 
 	  LED_RGB_SetIntensity(0, 0, 100);
 	  HAL_Delay(250);
