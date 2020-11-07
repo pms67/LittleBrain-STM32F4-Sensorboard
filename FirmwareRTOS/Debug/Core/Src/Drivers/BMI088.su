@@ -1,0 +1,11 @@
+BMI088.c:8:9:BMI088_Init	32	static
+BMI088.c:131:9:BMI088_ReadAccRegister	40	static
+BMI088.c:150:9:BMI088_ReadGyrRegister	40	static
+BMI088.c:169:9:BMI088_WriteAccRegister	24	static
+BMI088.c:182:9:BMI088_WriteGyrRegister	24	static
+BMI088.c:202:9:BMI088_ReadAccelerometer	48	static
+BMI088.c:226:9:BMI088_ReadGyroscope	48	static
+BMI088.c:255:9:BMI088_ReadAccelerometerDMA	24	static
+BMI088.c:273:6:BMI088_ReadAccelerometerDMA_Complete	24	static
+BMI088.c:290:9:BMI088_ReadGyroscopeDMA	24	static
+BMI088.c:308:6:BMI088_ReadGyroscopeDMA_Complete	24	static

@@ -254,7 +254,7 @@ uint8_t BMI088_ReadGyroscope(BMI088 *imu) {
  */
 uint8_t BMI088_ReadAccelerometerDMA(BMI088 *imu) {
 
-	uint8_t txBuf[8] = {(BMI_ACC_DATA | 0x80), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; /* Register addr, 1 byte dummy, 6 bytes data */
+	uint8_t txBuf[8] = {(BMI_ACC_DATA | 0x80), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; /* Register addr + read bit, 1 byte dummy, 6 bytes data */
 
 	HAL_GPIO_WritePin(imu->csAccPinBank, imu->csAccPin, GPIO_PIN_RESET);
 	if (HAL_SPI_TransmitReceive_DMA(imu->spiHandle, txBuf, (uint8_t *) imu->accRxBuf, 8) == HAL_OK) {
@@ -264,6 +264,7 @@ uint8_t BMI088_ReadAccelerometerDMA(BMI088 *imu) {
 
 	} else {
 
+		HAL_GPIO_WritePin(imu->csAccPinBank, imu->csAccPin, GPIO_PIN_SET);
 		return 0;
 
 	}
@@ -299,6 +300,7 @@ uint8_t BMI088_ReadGyroscopeDMA(BMI088 *imu) {
 
 	} else {
 
+		HAL_GPIO_WritePin(imu->csGyrPinBank, imu->csGyrPin, GPIO_PIN_SET);
 		return 0;
 
 	}

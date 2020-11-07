@@ -1,21 +1,13 @@
 /* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                             www.st.com/SLA0044
-  *
-  ******************************************************************************
-  */
+
+/*
+ *
+ * Little Brain PCB Firmware
+ *
+ * Phil's Lab - youtube.com/c/phils94
+ *
+ */
+
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -110,13 +102,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
 		BMI088_ReadAccelerometerDMA(&imu);
 
-		//BMI088_ReadAccelerometer(&imu);
-
 	} else if (GPIO_Pin == INT_GYR_Pin) {
 
 		BMI088_ReadGyroscopeDMA(&imu);
-
-		//BMI088_ReadGyroscope(&imu);
 
 	}
 
@@ -191,9 +179,10 @@ int main(void)
   uint32_t timerUSB = 0;
   uint32_t timerLED	= 0;
 
-  /* LED intensity */
-  uint8_t ledIntensity = 0;
+  /* LED colour state */
+  uint8_t ledState = 0;
 
+  /* USB data buffer */
   char logBuf[128];
   /* USER CODE END 2 */
 
@@ -205,7 +194,6 @@ int main(void)
 
 	  /* Log data via USB */
 	  if ((HAL_GetTick() - timerUSB) >= SAMPLE_TIME_MS_USB) {
-
 
 		  sprintf(logBuf, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", imu.acc_mps2[0], imu.acc_mps2[1], imu.acc_mps2[2],
 																	imu.gyr_rps[0], imu.gyr_rps[1], imu.gyr_rps[2]);
@@ -228,12 +216,28 @@ int main(void)
 	  /* Toggle LED */
 	  if ((HAL_GetTick() - timerLED) >= SAMPLE_TIME_MS_LED) {
 
-		  LED_RGB_SetIntensity(ledIntensity, 0, 0);
+		  switch(ledState) {
 
-		  if (ledIntensity == 0) {
-			  ledIntensity = 100;
-		  } else {
-			  ledIntensity = 0;
+			  case 0:
+				  LED_RGB_SetIntensity(100, 0, 0);
+				  break;
+
+			  case 1:
+				  LED_RGB_SetIntensity(0, 75, 0);
+				  break;
+
+			  case 2:
+				  LED_RGB_SetIntensity(0, 0, 100);
+				  break;
+
+		  }
+
+		  ledState++;
+
+		  if (ledState > 2) {
+
+			  ledState = 0;
+
 		  }
 
 		  timerLED = HAL_GetTick();
