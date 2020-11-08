@@ -36,6 +36,8 @@ typedef struct {
 	/* DMA */
 	uint8_t readingAcc;
 	uint8_t readingGyr;
+	uint8_t accTxBuf[8];
+	uint8_t gyrTxBuf[7];
 	volatile uint8_t accRxBuf[8];
 	volatile uint8_t gyrRxBuf[7];
 
