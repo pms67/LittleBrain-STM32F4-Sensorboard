@@ -32,5 +32,4 @@ Comment,Designator,Footprint,LCSC
 "W25N01GVZEIG","U201","WinbondFlash:W25N01GVZEIG","C88868"
 "BMP280","U300","Package_LGA:Bosch_LGA-8_2x2.5mm_P0.65mm_ClockwisePinNumbering","C233787"
 "BMI088","U301","BMI088:BMI088","C194919"
-"USBLC6-2SC6","U400","Package_TO_SOT_SMD:SOT-23-6","C7519"
 "16MHz","Y200","Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm","C13738"

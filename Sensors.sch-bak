@@ -374,4 +374,8 @@ Wire Notes Line
 	3900 3700 7425 3700
 Text Notes 925  1275 0    295  ~ 59
 Sensors
+Text Notes 4450 1725 0    98   ~ 20
+Barometric Pressure Sensor
+Text Notes 3875 3675 0    98   ~ 20
+Inertial Measurement Unit
 $EndSCHEMATC

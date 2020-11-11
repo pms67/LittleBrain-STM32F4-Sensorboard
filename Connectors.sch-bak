@@ -529,9 +529,11 @@ Wire Wire Line
 	10050 2750 9550 2750
 Connection ~ 9550 2750
 $Comp
-L Connector:USB_B_Micro J402
+L RBoard-rescue:USB_B_Micro-Connector J402
 U 1 1 5F9F2004
 P 3100 5450
+AR Path="/5F9F2004" Ref="J402"  Part="1" 
+AR Path="/5F83C1A4/5F9F2004" Ref="J402"  Part="1" 
 F 0 "J402" H 3100 5950 50  0000 C CNN
 F 1 "USB_B_Micro" H 3100 5850 50  0000 C CNN
 F 2 "SchmillipKiCADLibrary:USB_MICRO_B_101181930001LF" H 3250 5400 50  0001 C CNN
@@ -552,10 +554,6 @@ F 3 "" H 3100 5850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 NoConn ~ 3400 5650
-Text GLabel 3400 5450 2    50   Input ~ 0
-USB_CONN_D+
-Text GLabel 3400 5550 2    50   Input ~ 0
-USB_CONN_D-
 $Comp
 L power:+5V #PWR058
 U 1 1 5F9F429F
@@ -571,47 +569,9 @@ Wire Wire Line
 	3500 5150 3500 5250
 Wire Wire Line
 	3500 5250 3400 5250
-$Comp
-L Power_Protection:USBLC6-2SC6 U400
-U 1 1 5F9F4D7E
-P 5500 5450
-F 0 "U400" H 5700 5800 50  0000 C CNN
-F 1 "USBLC6-2SC6" H 5850 5100 50  0000 C CNN
-F 2 "Package_TO_SOT_SMD:SOT-23-6" H 5500 4950 50  0001 C CNN
-F 3 "https://www.st.com/resource/en/datasheet/usblc6-2.pdf" H 5700 5800 50  0001 C CNN
-F 4 "C7519" H 5500 5450 50  0001 C CNN "LCSC Part #"
-	1    5500 5450
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR063
-U 1 1 5F9F5FCC
-P 5500 5050
-F 0 "#PWR063" H 5500 4900 50  0001 C CNN
-F 1 "+5V" H 5515 5223 50  0000 C CNN
-F 2 "" H 5500 5050 50  0001 C CNN
-F 3 "" H 5500 5050 50  0001 C CNN
-	1    5500 5050
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR064
-U 1 1 5F9F6CF1
-P 5500 5850
-F 0 "#PWR064" H 5500 5600 50  0001 C CNN
-F 1 "GND" H 5505 5677 50  0000 C CNN
-F 2 "" H 5500 5850 50  0001 C CNN
-F 3 "" H 5500 5850 50  0001 C CNN
-	1    5500 5850
-	1    0    0    -1  
-$EndComp
-Text GLabel 5100 5550 0    50   Input ~ 0
-USB_CONN_D-
-Text GLabel 5900 5550 2    50   Input ~ 0
-USB_CONN_D+
-Text GLabel 5100 5350 0    50   Input ~ 0
+Text GLabel 3400 5550 2    50   Input ~ 0
 USB_D-
-Text GLabel 5900 5350 2    50   Input ~ 0
+Text GLabel 3400 5450 2    50   Input ~ 0
 USB_D+
 $Comp
 L Connector_Generic:Conn_01x02 J400
@@ -665,11 +625,7 @@ Wire Notes Line
 Wire Notes Line
 	2750 2000 2750 3825
 Wire Notes Line
-	2750 6100 6600 6100
-Wire Notes Line
-	6600 6100 6600 4750
-Wire Notes Line
-	6600 4750 2750 4750
+	3850 6100 3850 4750
 Wire Notes Line
 	2750 4750 2750 6100
 Wire Notes Line
@@ -688,4 +644,8 @@ Text Notes 975  1950 0    98   ~ 20
 Power
 Text Notes 8475 1950 0    98   ~ 20
 SWD
+Wire Notes Line
+	2750 6100 3850 6100
+Wire Notes Line
+	2750 4750 3850 4750
 $EndSCHEMATC
