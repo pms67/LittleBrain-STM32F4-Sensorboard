@@ -1,5 +1,6 @@
 "Core/Src/Drivers/BMI088.o"
 "Core/Src/Drivers/SPL06.o"
+"Core/Src/FIRFilter.o"
 "Core/Src/main.o"
 "Core/Src/stm32f4xx_hal_msp.o"
 "Core/Src/stm32f4xx_it.o"

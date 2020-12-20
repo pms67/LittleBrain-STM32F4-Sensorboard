@@ -40,7 +40,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h \
  C:/Users/phili/OneDrive/Electrical/JLCPCB/RBoard/Firmware/Core/Inc/Drivers/BMI088.h \
- C:/Users/phili/OneDrive/Electrical/JLCPCB/RBoard/Firmware/Core/Inc/Drivers/SPL06.h
+ C:/Users/phili/OneDrive/Electrical/JLCPCB/RBoard/Firmware/Core/Inc/Drivers/SPL06.h \
+ ../Core/Inc/FIRFilter.h
 
 ../Core/Inc/main.h:
 
@@ -129,3 +130,5 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 C:/Users/phili/OneDrive/Electrical/JLCPCB/RBoard/Firmware/Core/Inc/Drivers/BMI088.h:
 
 C:/Users/phili/OneDrive/Electrical/JLCPCB/RBoard/Firmware/Core/Inc/Drivers/SPL06.h:
+
+../Core/Inc/FIRFilter.h:

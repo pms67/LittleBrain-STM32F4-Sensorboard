@@ -20,6 +20,8 @@
 
 #include "BMI088.h"
 #include "SPL06.h"
+
+#include "FIRFilter.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +54,8 @@ TIM_HandleTypeDef htim4;
 /* USER CODE BEGIN PV */
 BMI088 imu;
 SPL06  bar;
+
+FIRFilter lpfAcc;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,6 +79,15 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 		if (imu.readingAcc) {
 
 			BMI088_ReadAccelerometerDMA_Complete(&imu);
+
+			/* Filter accelerometer data */
+			FIRFilter_Update(&lpfAcc, imu.acc_mps2[0]);
+
+			/* Log raw and filtered data via USB */
+			char logBuf[128];
+
+			sprintf(logBuf, "%.4f,%.4f\r\n", imu.acc_mps2[0], lpfAcc.out);
+			CDC_Transmit_FS((uint8_t *) logBuf, strlen(logBuf));
 
 		}
 
@@ -174,6 +187,9 @@ int main(void)
   /* Initialise barometric pressure sensor */
   SPL06_Init(&bar, &hspi3, GPIOA, SPI3_NCS_Pin);
 
+  /* Initialise FIR filter */
+  FIRFilter_Init(&lpfAcc);
+
   /* Timers */
   uint32_t timerBAR = 0;
   uint32_t timerUSB = 0;
@@ -195,10 +211,10 @@ int main(void)
 	  /* Log data via USB */
 	  if ((HAL_GetTick() - timerUSB) >= SAMPLE_TIME_MS_USB) {
 
-		  sprintf(logBuf, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", imu.acc_mps2[0], imu.acc_mps2[1], imu.acc_mps2[2],
-																	imu.gyr_rps[0], imu.gyr_rps[1], imu.gyr_rps[2]);
+		 // sprintf(logBuf, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", imu.acc_mps2[0], imu.acc_mps2[1], imu.acc_mps2[2],
+		//															imu.gyr_rps[0], imu.gyr_rps[1], imu.gyr_rps[2]);
 
-		  CDC_Transmit_FS((uint8_t *) logBuf, strlen(logBuf));
+		 // CDC_Transmit_FS((uint8_t *) logBuf, strlen(logBuf));
 
 		  timerUSB = HAL_GetTick();
 

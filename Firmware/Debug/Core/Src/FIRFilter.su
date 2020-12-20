@@ -1,0 +1,2 @@
+FIRFilter.c:6:6:FIRFilter_Init	24	static
+FIRFilter.c:23:7:FIRFilter_Update	24	static
