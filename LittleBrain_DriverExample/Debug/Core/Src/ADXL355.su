@@ -1,0 +1,6 @@
+ADXL355.c:3:9:ADXL355_Initialise	24	static
+ADXL355.c:75:19:ADXL355_ReadTemperature	24	static
+ADXL355.c:100:19:ADXL355_ReadAccelerations	56	static
+ADXL355.c:166:19:ADXL355_ReadRegister	40	static
+ADXL355.c:172:19:ADXL355_ReadRegisters	40	static
+ADXL355.c:178:19:ADXL355_WriteRegister	40	static

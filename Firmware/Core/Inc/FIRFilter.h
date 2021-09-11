@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define FIR_FILTER_LENGTH 16
+#define FIR_FILTER_LENGTH 10
 
 typedef struct {
 	float 	buf[FIR_FILTER_LENGTH];

@@ -17,11 +17,15 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
+#include <math.h>
 
 #include "BMI088.h"
 #include "SPL06.h"
 
 #include "FIRFilter.h"
+#include "RCFilter.h"
+
+//#include "EKF.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,9 +36,13 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 /* USER CODE END PD */
-#define SAMPLE_TIME_MS_USB 1000
+#define SAMPLE_TIME_MS_USB  20
 #define SAMPLE_TIME_MS_BAR  125
 #define SAMPLE_TIME_MS_LED  250
+#define SAMPLE_TIME_MS_ATT   10
+
+#define COMP_FILT_ALPHA 0.1f
+#define RAD_TO_DEG 		57.2957795131f
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
@@ -55,7 +63,15 @@ TIM_HandleTypeDef htim4;
 BMI088 imu;
 SPL06  bar;
 
-FIRFilter lpfAcc;
+RCFilter lpfAcc[3];
+RCFilter lpfGyr[3];
+
+FIRFilter barFilterMovingAverage;
+
+float rollEstimate_rad;
+float pitchEstimate_rad;
+
+//EKF ekf;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -81,19 +97,20 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 			BMI088_ReadAccelerometerDMA_Complete(&imu);
 
 			/* Filter accelerometer data */
-			FIRFilter_Update(&lpfAcc, imu.acc_mps2[0]);
-
-			/* Log raw and filtered data via USB */
-			char logBuf[128];
-
-			sprintf(logBuf, "%.4f,%.4f\r\n", imu.acc_mps2[0], lpfAcc.out);
-			CDC_Transmit_FS((uint8_t *) logBuf, strlen(logBuf));
+		//	RCFilter_Update(&lpfAcc[0], imu.acc_mps2[0]);
+		//	RCFilter_Update(&lpfAcc[1], imu.acc_mps2[1]);
+		//	RCFilter_Update(&lpfAcc[2], imu.acc_mps2[2]);
 
 		}
 
 		if (imu.readingGyr) {
 
 			BMI088_ReadGyroscopeDMA_Complete(&imu);
+
+			/* Filter gyroscope data */
+		//	RCFilter_Update(&lpfGyr[0], imu.gyr_rps[0]);
+		//	RCFilter_Update(&lpfGyr[1], imu.gyr_rps[1]);
+		//	RCFilter_Update(&lpfGyr[2], imu.gyr_rps[2]);
 
 		}
 
@@ -102,6 +119,9 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 		if (bar.reading) {
 
 			SPL06_ReadDMA_Complete(&bar);
+
+			/* Filter barometer readings using 10-point moving average filter */
+			FIRFilter_Update(&barFilterMovingAverage, bar.pressure_Pa);
 
 		}
 
@@ -187,16 +207,30 @@ int main(void)
   /* Initialise barometric pressure sensor */
   SPL06_Init(&bar, &hspi3, GPIOA, SPI3_NCS_Pin);
 
-  /* Initialise FIR filter */
-  FIRFilter_Init(&lpfAcc);
+  /* Initialise moving average filter for barometer */
+  FIRFilter_Init(&barFilterMovingAverage);
+
+  /* Initialise low-pass filters */
+  for (uint8_t n = 0; n < 3; n++) {
+
+	  RCFilter_Init(&lpfAcc[n], 5.0f, 0.01f);
+
+	  RCFilter_Init(&lpfGyr[n], 25.0f, 0.01f);
+
+  }
 
   /* Timers */
   uint32_t timerBAR = 0;
   uint32_t timerUSB = 0;
   uint32_t timerLED	= 0;
+  uint32_t timerATT = 0;
 
   /* LED colour state */
   uint8_t ledState = 0;
+
+  /* Roll and pitch estimates */
+  rollEstimate_rad  = 0.0f;
+  pitchEstimate_rad = 0.0f;
 
   /* USB data buffer */
   char logBuf[128];
@@ -204,6 +238,12 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  float rollAcc_rad  = 0.0f;
+  float pitchAcc_rad = 0.0f;
+
+  float rollGyr_rad = 0.0f;
+  float pitchGyr_rad = 0.0f;
+
   while (1)
   {
     /* USER CODE END WHILE */
@@ -211,10 +251,15 @@ int main(void)
 	  /* Log data via USB */
 	  if ((HAL_GetTick() - timerUSB) >= SAMPLE_TIME_MS_USB) {
 
-		 // sprintf(logBuf, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", imu.acc_mps2[0], imu.acc_mps2[1], imu.acc_mps2[2],
-		//															imu.gyr_rps[0], imu.gyr_rps[1], imu.gyr_rps[2]);
+		  /* Print via USB */
+		 // sprintf(logBuf, "%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n", rollEstimate_rad * RAD_TO_DEG, pitchEstimate_rad * RAD_TO_DEG,
+		//		  	  	  	  	  	  	 	 	 	 rollAcc_rad * RAD_TO_DEG, pitchAcc_rad * RAD_TO_DEG,
+		//											 rollGyr_rad * RAD_TO_DEG, pitchGyr_rad * RAD_TO_DEG);
 
-		 // CDC_Transmit_FS((uint8_t *) logBuf, strlen(logBuf));
+		  sprintf(logBuf, "%.3f,%.3f,%.3f,%.3f,%.3f,%.3f\r\n", imu.acc_mps2[0], imu.acc_mps2[1], imu.acc_mps2[2],
+				  	  	  	  	  	  	  	  	  	  	  	   imu.gyr_rps[0], imu.gyr_rps[1], imu.gyr_rps[2]);
+
+		  CDC_Transmit_FS((uint8_t *) logBuf, strlen(logBuf));
 
 		  timerUSB = HAL_GetTick();
 
